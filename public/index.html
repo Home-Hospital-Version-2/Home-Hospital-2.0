@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> Hospital Scheduler v2.0</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+
+<!-- Favicon -->
+<link rel="icon" href="logo.png" type="image/png">
+</head>
+<body>
+  <div class="app-bar">
+    <div class="app-identity">
+      <img src="logo.png" alt="" class="app-logo">
+      <div>
+        <span class="app-name">Hospital Scheduler</span>
+        <sup class="app-version">v2.0</sup>
+      </div>
+    </div>
+  </div>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="main-nav">
+    <div class="nav-brand">
+      <span class="brand-icon">🏥</span>
+      <span class="brand-text">Home Hospital Scheduler</span>
+      <span class="version-badge">v2.0</span>
+    </div>
+    <div class="nav-links">
+      <button class="nav-btn active" data-dashboard="coordinator">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Coordinator</span>
+      </button>
+      <button class="nav-btn" data-dashboard="supervisor">
+        <span class="nav-icon">👔</span>
+        <span class="nav-label">Supervisor</span>
+      </button>
+      <button class="nav-btn" data-dashboard="professional">
+        <span class="nav-icon">👨‍⚕️</span>
+        <span class="nav-label">Professional</span>
+      </button>
+      <button class="nav-btn" data-dashboard="patient">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Patient</span>
+      </button>
+    </div>
+    <div class="nav-notifications">
+      <button class="notification-btn" id="notificationBtn">
+        <span class="notification-icon">🔔</span>
+        <span class="notification-badge" id="notificationBadge">0</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Notification Panel -->
+  <div class="notification-panel" id="notificationPanel">
+    <div class="notification-header">
+      <h3>Notifications</h3>
+      <button class="mark-all-read-btn" id="markAllReadBtn">Mark all read</button>
+    </div>
+    <div class="notification-list" id="notificationList">
+      <!-- Notifications loaded dynamically -->
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    
+    <!-- ==================== COORDINATOR DASHBOARD ==================== -->
+    <section class="dashboard" id="coordinator-dashboard">
+      <header class="dashboard-header">
+        <div class="header-content">
+          <h1>Coordinator Dashboard</h1>
+          <p class="header-subtitle">Manage approved availability and generate schedules</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-primary" id="runSchedulerBtn">
+            <span class="btn-icon">🤖</span>
+            Run AI Scheduler
+          </button>
+          <button class="btn btn-secondary" id="exportScheduleBtn">
+            <span class="btn-icon">📥</span>
+            Export CSV
+          </button>
+        </div>
+      </header>
+
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">👥</div>
+          <div class="stat-content">
+            <span class="stat-value" id="totalStaff">0</span>
+            <span class="stat-label">Total Staff</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🏠</div>
+          <div class="stat-content">
+            <span class="stat-value" id="totalPatients">0</span>
+            <span class="stat-label">Patients</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📅</div>
+          <div class="stat-content">
+            <span class="stat-value" id="totalSessions">0</span>
+            <span class="stat-label">Scheduled Sessions</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-content">
+            <span class="stat-value" id="approvedRules">0</span>
+            <span class="stat-label">Active Rules</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Approved Availability Section -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>✅ Approved Staff Availability</h2>
+          <span class="section-badge" id="approvedCount">0</span>
+        </div>
+        <div class="approved-availability-list" id="approvedAvailabilityList">
+          <!-- Loaded dynamically -->
+        </div>
+      </div>
+
+      <!-- Active Rules Section -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>📜 Active Scheduling Rules</h2>
+        </div>
+        <div class="rules-display" id="activeRulesDisplay">
+          <!-- Loaded dynamically -->
+        </div>
+      </div>
+
+      <!-- Schedule Table -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>📅 Generated Schedule</h2>
+          <div class="schedule-period" id="schedulePeriod"></div>
+        </div>
+        <div class="schedule-filters">
+          <input type="date" id="filterDate" class="filter-input">
+          <select id="filterStaff" class="filter-select">
+            <option value="">All Staff</option>
+          </select>
+          <select id="filterLocation" class="filter-select">
+            <option value="">All Locations</option>
+            <option value="Oulu">Oulu</option>
+            <option value="Kempele">Kempele</option>
+            <option value="Kiiminki">Kiiminki</option>
+          </select>
+        </div>
+        <div class="table-container">
+          <table class="data-table" id="scheduleTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Staff</th>
+                <th>Patient</th>
+                <th>Care Type</th>
+                <th>Location</th>
+                <th>Duration</th>
+                <th>Priority</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="scheduleTableBody">
+              <!-- Loaded dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SUPERVISOR DASHBOARD ==================== -->
+    <section class="dashboard hidden" id="supervisor-dashboard">
+      <header class="dashboard-header">
+        <div class="header-content">
+          <h1>Supervisor Dashboard</h1>
+          <p class="header-subtitle">Review availability, manage rules, and monitor swaps</p>
+        </div>
+      </header>
+
+      <!-- Supervisor Stats -->
+      <div class="stats-grid">
+        <div class="stat-card stat-warning">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-content">
+            <span class="stat-value" id="pendingCount">0</span>
+            <span class="stat-label">Pending Review</span>
+          </div>
+        </div>
+        <div class="stat-card stat-success">
+          <div class="stat-icon">✅</div>
+          <div class="stat-content">
+            <span class="stat-value" id="supervisorApprovedCount">0</span>
+            <span class="stat-label">Approved</span>
+          </div>
+        </div>
+        <div class="stat-card stat-danger">
+          <div class="stat-icon">❌</div>
+          <div class="stat-content">
+            <span class="stat-value" id="rejectedCount">0</span>
+            <span class="stat-label">Rejected</span>
+          </div>
+        </div>
+        <div class="stat-card stat-info">
+          <div class="stat-icon">🔄</div>
+          <div class="stat-content">
+            <span class="stat-value" id="swapCount">0</span>
+            <span class="stat-label">Total Swaps</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pending Availability Section -->
+      <div class="section-card section-highlight">
+        <div class="section-header">
+          <h2>⏳ Pending Availability Submissions</h2>
+          <span class="section-badge badge-warning" id="pendingBadge">0</span>
+        </div>
+        <div class="pending-list" id="pendingAvailabilityList">
+          <!-- Loaded dynamically -->
+        </div>
+      </div>
+
+      <!-- Swap Log Section -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>🔄 Swap Log</h2>
+        </div>
+        <div class="swap-log-list" id="swapLogList">
+          <!-- Loaded dynamically -->
+        </div>
+      </div>
+
+      <!-- Workload Overview -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>📊 Staff Workload Overview</h2>
+        </div>
+        <div class="workload-grid" id="workloadGrid">
+          <!-- Loaded dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PROFESSIONAL DASHBOARD ==================== -->
+    <section class="dashboard hidden" id="professional-dashboard">
+      <header class="dashboard-header">
+        <div class="header-content">
+          <h1>Professional Dashboard</h1>
+          <p class="header-subtitle">Manage your schedule and availability</p>
+        </div>
+        <div class="staff-selector">
+          <label for="staffSelect">Select Staff:</label>
+          <select id="staffSelect" class="filter-select">
+            <!-- Loaded dynamically -->
+          </select>
+        </div>
+      </header>
+
+      <!-- Professional Info Card -->
+      <div class="professional-info-card" id="professionalInfo">
+        <!-- Loaded dynamically -->
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <button class="btn btn-primary" id="submitAvailabilityBtn">
+          <span class="btn-icon">📝</span>
+          Submit Availability
+        </button>
+        <button class="btn btn-secondary" id="viewMyAvailabilityBtn">
+          <span class="btn-icon">📋</span>
+          My Submissions
+        </button>
+      </div>
+
+      <!-- Availability Form Modal -->
+      <div class="modal hidden" id="availabilityModal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>Submit Weekly Availability</h2>
+            <button class="modal-close" id="closeAvailabilityModal">&times;</button>
+          </div>
+          <form id="availabilityForm">
+            <div class="form-group">
+              <label>Available Days</label>
+              <div class="checkbox-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" name="days" value="Monday"> Monday
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" name="days" value="Tuesday"> Tuesday
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" name="days" value="Wednesday"> Wednesday
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" name="days" value="Thursday"> Thursday
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" name="days" value="Friday"> Friday
+                </label>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="startTime">Start Time</label>
+                <input type="time" id="startTime" name="startTime" value="09:00" required>
+              </div>
+              <div class="form-group">
+                <label for="endTime">End Time</label>
+                <input type="time" id="endTime" name="endTime" value="17:00" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="maxHours">Maximum Hours per Day</label>
+              <input type="number" id="maxHours" name="maxHours" value="8" min="1" max="12" required>
+            </div>
+            <div class="form-group">
+              <label>Coverage Areas</label>
+              <div class="checkbox-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" name="coverage" value="Oulu"> Oulu
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" name="coverage" value="Kempele"> Kempele
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" name="coverage" value="Kiiminki"> Kiiminki
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="travelPreference">Travel Preference</label>
+              <select id="travelPreference" name="travelPreference">
+                <option value="minimal">Minimal - Prefer short distances</option>
+                <option value="moderate">Moderate - Up to 30km</option>
+                <option value="flexible">Flexible - Any distance</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="shiftPreference">Shift Preference</label>
+              <select id="shiftPreference" name="shiftPreference">
+                <option value="morning">Morning (Before 12:00)</option>
+                <option value="afternoon">Afternoon (After 12:00)</option>
+                <option value="flexible">Flexible - Any time</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="preferenceNotes">Special Notes / Preferences</label>
+              <textarea id="preferenceNotes" name="preferenceNotes" rows="3" placeholder="Any special preferences, constraints, or notes for the supervisor..."></textarea>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" id="cancelAvailability">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit for Review</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- My Submissions Modal -->
+      <div class="modal hidden" id="mySubmissionsModal">
+        <div class="modal-content modal-large">
+          <div class="modal-header">
+            <h2>My Availability Submissions</h2>
+            <button class="modal-close" id="closeMySubmissionsModal">&times;</button>
+          </div>
+          <div class="submissions-list" id="mySubmissionsList">
+            <!-- Loaded dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Upcoming Sessions Section -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>📅 My Upcoming Sessions</h2>
+          <span class="schedule-period-badge" id="professionalSchedulePeriod"></span>
+        </div>
+        <div class="sessions-list" id="professionalSessionsList">
+          <!-- Loaded dynamically -->
+        </div>
+      </div>
+
+      <!-- Swap Modal -->
+      <div class="modal hidden" id="swapModal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>Swap Session</h2>
+            <button class="modal-close" id="closeSwapModal">&times;</button>
+          </div>
+          <div class="swap-session-info" id="swapSessionInfo">
+            <!-- Session details -->
+          </div>
+          <div class="eligible-staff-list" id="eligibleStaffList">
+            <!-- Eligible staff for swap -->
+          </div>
+          <div class="form-group">
+            <label for="swapReason">Reason for Swap</label>
+            <textarea id="swapReason" rows="2" placeholder="Optional: Provide a reason for this swap..."></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" id="cancelSwap">Cancel</button>
+            <button type="button" class="btn btn-primary" id="confirmSwap" disabled>Confirm Swap</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  <!-- ==================== PATIENT DASHBOARD ==================== -->
+<section class="dashboard hidden" id="patient-dashboard">
+  <header class="dashboard-header">
+    <div class="header-content">
+      <h1>Patient Dashboard</h1>
+      <p class="header-subtitle">View your upcoming appointments and location details</p>
+    </div>
+    <div class="patient-selector">
+      <label for="patientSelect">Select Patient:</label>
+      <select id="patientSelect" class="filter-select">
+        <!-- Loaded dynamically -->
+      </select>
+    </div>
+  </header>
+
+  <!-- Patient Info & Map Section -->
+  <div class="patient-dashboard-container">
+    <!-- Patient Info Card -->
+    <div class="section-card patient-info-section">
+      <div id="patientInfo">
+        <!-- Patient info will be loaded here -->
+        <div class="empty-state">
+          <div class="empty-state-icon">👤</div>
+          <h3>Select a Patient</h3>
+          <p>Choose a patient from the dropdown above to view details</p>
+        </div>
+      </div>
+    </div>
+
+    
+      
+      <!-- Quick Actions -->
+      <div class="quick-actions" id="patientLocationActions" style="display: none; margin-top: 1rem;">
+        <button class="btn btn-primary" id="openMapBtn">
+          <span class="btn-icon">🗺️</span>
+          Open in Google Maps
+        </button>
+        <button class="btn btn-secondary" id="getDirectionsBtn">
+          <span class="btn-icon">🚗</span>
+          Get Directions
+        </button>
+        <button class="btn btn-secondary" id="findHospitalsBtn">
+          <span class="btn-icon">🏥</span>
+          Nearby Hospitals
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upcoming Visits Section -->
+  <div class="section-card">
+    <div class="section-header">
+      <h2>📅 Upcoming Visits</h2>
+    </div>
+    <div class="visits-list" id="patientVisitsList">
+      <!-- Loaded dynamically -->
+    </div>
+  </div>
+
+  <!-- Patient Location Details Modal -->
+  <div class="modal hidden" id="patientLocationModal">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2 id="modalPatientName">Patient Location</h2>
+        <button class="modal-close" id="closeLocationModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Address</label>
+            <div class="patient-address-display" id="modalAddress"></div>
+          </div>
+          <div class="form-group">
+            <label>Coordinates</label>
+            <div class="patient-coordinates-display" id="modalCoordinates"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Map Preview</label>
+          <div class="map-preview" id="modalMapPreview">
+            <!-- Embedded map will go here -->
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-secondary" id="printDirectionsBtn">
+            <span class="btn-icon">🖨️</span>
+            Print Directions
+          </button>
+          <button class="btn btn-primary" id="modalOpenMapBtn">
+            <span class="btn-icon">🗺️</span>
+            Open Full Map
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay hidden" id="loadingOverlay">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Processing...</p>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="App.js"></script>
+</body>
+</html>
